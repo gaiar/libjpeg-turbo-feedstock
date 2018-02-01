@@ -1,4 +1,80 @@
+#
+# This is a static-only, no clobbing, symbols prefixed variant of
+# conda-forge's libjpeg-turbo recipe. Changes:
+#
+#  - Linux only.
+#
+#  - Only static assets are distributed.
+#    Its exported symbols are prefixed with "turbo_".
+#    This is easier to maintain than full-code patches.
+#
+#  - Header files are modified accordingly.
+#    While keeping full compatibility with downstream
+#    code, the new prefixed symbol names are aliased
+#    to the new symbol names.
+#
+#  - These live in custom locations:
+#      lib/libjpeg-turbo-prefixed/libturbojpeg.a
+#      include/libjpeg-turbo-prefixed/turbojpeglib.h
+#    Note that now libjpeg.h is a symlink to
+#    turbojpeglib.h; we recommend to use the new
+#    name when possible, to avoid risking using
+#    jpeg 9 equivalent due to include directories
+#    ordering.
+#
+# You can find a usage example in our opencv recipe:
+#   https://github.com/loopbio/opencv-feedstock
+# Essentially:
+#   1- Depend on this package
+#    In meta.yaml files:
+#      - libjpeg-turbo 1.5.3 noclob_prefixed
+#    In match specs:
+#      - libjpeg-turbo=1.5.3=noclob_prefixed
+#
+#   2- Configure downstream libraries to find
+#      these artifacts. For example, opencv cmake:
+#      -DJPEG_INCLUDE_DIR=${PREFIX}/include/libjpeg-turbo-prefixed           \
+#      -DJPEG_LIBRARY=${PREFIX}/lib/libjpeg-turbo-prefixed/libturbojpeg.a    \
+#
+#   3- Optional but recommended: ensure we use the new
+#      symbols by modifying includes in downstream libraries
+#      and/or ensuring the included headers in the package
+#      take precedence over system ones.
+#
+# Motivation
+# ----------
+#
+# Conda-forge stack is built against the libjpeg 9.
+# Libjpeg-turbo is purposely stuck at libjpeg 8 ABI:
+#   https://libjpeg-turbo.org/About/Jpeg-9
+#
+# Unless we would build a whole parallel stack of packages
+# against libjpeg-turbo (tiff, jasper, QT, opencv...),
+# libjpeg-turbo cannot be a drop-in replacement or even
+# the main jpeg implementation for conda environments.
+# This is in contrast to, for example, many linux distros,
+# where libjpeg-turbo is a first-class citizen. There are
+# two main problems that arise when mixing jpeg 9 and
+# libjpeg-turbo:
+#
+#  - Files clobbering. Alghough ABI versions avoid
+#    full clobbering for DSOs, other files like "libjpeg.so",
+#    "libjpeg.a" or "libjpeg.h" do get overwritten by
+#    either package. This is dangerous when building
+#    downstream libraries whose dependencies do pull
+#    libjpeg.
+#
+#  - Symbols collision. These two libs are both designed
+#    to have the same ABI yet have diverged on implementation.
+#    Quite the segfault headache at runtime when not mixed
+#    with care, specially if downstream dependencies are
+#    chatty and re-export the symbols, as opencv does
+#    by default. A quick summarizing read:
+#    http://www.fcollyer.com/2013/01/04/elf-symbol-visibility-and-the-perils-of-name-clashing/
+#
+
 {% set version = "1.5.3" %}
+{% set build_number = "0" %}
 
 package:
     name: libjpeg-turbo
@@ -10,12 +86,14 @@ source:
     sha256: 1a17020f859cb12711175a67eab5c71fc1904e04b587046218e36106e07eabde
 
 build:
-    number: 0
+    number: {{ build_number }}
+    skip: True  # [not linux]
     features:
         - vc9  # [win and py27]
         - vc10  # [win and py34]
         - vc14  # [win and py35]
         - vc14  # [win and py36]
+    string: noclob_prefixed_{{ build_number }}
 
 requirements:
     build:
@@ -37,18 +115,20 @@ requirements:
         - vc  14  # [win and py35]
         - vc  14  # [win and py36]
 
-test:
-    files:
-        - testorig.jpg
-    commands:
-        - djpeg -dct int -ppm -outfile testout.ppm testorig.jpg
-
 about:
     home: http://www.libjpeg-turbo.org/
     license: IJG, modified 3-clause BSD and zlib
-    summary: IJG JPEG compliant runtime library with SIMD and other optimizations
+    summary: |
+      IJG JPEG compliant runtime library with SIMD and other optimizations
+      Can be mixed with libjpeg >= 9:
+        - Static only
+        - Library files live in custom locations
+        - Public symbols are prefixed with "turbo_"
+        - Provided headers allow to keep using standard libjpeg API
 
 extra:
     recipe-maintainers:
+        - sdvillal
+    original-recipe-maintainers:
         - valgur
         - sdvillal
