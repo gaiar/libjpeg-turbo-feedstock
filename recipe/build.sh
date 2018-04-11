@@ -1,16 +1,50 @@
 #!/bin/bash
+#
+# See:
+#   https://github.com/libjpeg-turbo/libjpeg-turbo/blob/master/BUILDING.md
+#
 
-mkdir build_libjpeg && cd  build_libjpeg
+#
+# How to add proper version info, so opencv getBuildInfo can display it?
+# Need to check with opencv, and probably add it like:
+#   https://stackoverflow.com/questions/1638207/how-to-store-a-version-number-in-a-static-library
+#
 
-cmake -D CMAKE_INSTALL_PREFIX=$PREFIX \
-      -D CMAKE_INSTALL_LIBDIR="$PREFIX/lib" \
-      -D CMAKE_BUILD_TYPE=Release \
-      -D ENABLE_STATIC=1 \
-      -D ENABLE_SHARED=1 \
-      -D WITH_JPEG8=1 \
-      -D CMAKE_ASM_NASM_COMPILER=yasm \
-      $SRC_DIR
+TURBO_PREFIX=${PREFIX}/lib/libjpeg-turbo
 
-make -j$CPU_COUNT
-ctest
-make install -j$CPU_COUNT
+mkdir build
+cd build
+
+cmake -LAH \
+  -DCMAKE_RULE_MESSAGES=ON                                           \
+  -DCMAKE_VERBOSE_MAKEFILE=OFF                                       \
+  -G"Unix Makefiles"                                                 \
+  -DCMAKE_BUILD_TYPE=Release                                         \
+  -DCMAKE_ASM_NASM_COMPILER=yasm                                     \
+  -DCMAKE_POSITION_INDEPENDENT_CODE=ON                               \
+  -DREQUIRE_SIMD=ON                                                  \
+  -DENABLE_STATIC=ON                                                 \
+  -DENABLE_SHARED=ON                                                 \
+  -DWITH_JPEG8=ON                                                    \
+  -DWITH_TURBOJPEG=ON                                                \
+  -DCMAKE_INSTALL_PREFIX=${TURBO_PREFIX}                             \
+  -DCMAKE_INSTALL_LIBDIR="${TURBO_PREFIX}/lib"                       \
+  ..
+
+make -j${CPU_COUNT} ${VERBOSE_AT}
+make test
+make install
+
+# Prefix symbols to avoid clashing with libjpeg 9
+# Trying to play with the visibility of the symbols + opencv
+# is quite complicated, so to my mind this is the safest
+# and more straightforward option.
+TURBO_PATH=${TURBO_PREFIX} python ${RECIPE_DIR}/prefixit.py
+
+# Should happen, but do not ATM:
+#   1- Compile the binaries against the prefixed library
+#   2- Then rerun the tests against the prefixed library
+#      Note: currently they pass, we would only miss:
+# 	      150 - jpegtran-shared-crop (Failed)
+#         151 - jpegtran-shared-crop-cmp (Failed))
+#   3- Run specific tests for the prefixed version of the lib

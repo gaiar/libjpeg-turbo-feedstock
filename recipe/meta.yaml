@@ -1,46 +1,147 @@
-{% set version = "1.5.90" %}
+#
+# This is a no clobbing, symbols prefixed variant of
+# conda-forge's libjpeg-turbo recipe. Changes:
+#
+#  - Linux only.
+#
+#  - Exported libjpeg symbols are prefixed with "turbo_".
+#    This is easier to maintain than full-code patches.
+#
+#  - Header files are modified accordingly.
+#    While keeping full compatibility with downstream
+#    code, the new prefixed symbol names are aliased
+#    to the new symbol names.
+#
+#  - These live in a custom location:
+#      $PREFIX/lib/libjpeg-turbo/prefixed
+#    Note that now libjpeg.h is a symlink to a new
+#    file turbojpeglib.h; we recommend to use the new
+#    name when possible, to avoid risking using
+#    jpeg 9 equivalent due to include directories
+#    ordering.
+#
+# You can find a usage example in our opencv recipe:
+#   https://github.com/loopbio/opencv-feedstock
+# Essentially:
+#   1- Depend on this package
+#    In meta.yaml files:
+#      - libjpeg-turbo 1.5.90 noclob_prefixed
+#    In match specs:
+#      - libjpeg-turbo=1.5.90=noclob_prefixed
+#
+#   2- Configure downstream libraries to find
+#      these artifacts. For example, opencv cmake:
+#      -DJPEG_INCLUDE_DIR=${PREFIX}/lib/libjpeg-turbo/prefixed/include
+#      -DJPEG_LIBRARY=${PREFIX}/lib/libjpeg-turbo/prefixed/lib/libturbojpeg.a
+#
+#   3- Optional but recommended: ensure we use the new
+#      symbols by modifying includes in downstream libraries
+#      and/or ensuring the included headers in the package
+#      take precedence over system ones.
+#
+# Motivation
+# ----------
+#
+# Conda-forge stack is built against the libjpeg 9.
+# Libjpeg-turbo is purposely stuck at libjpeg 8 ABI:
+#   https://libjpeg-turbo.org/About/Jpeg-9
+#
+# Unless we would build a whole parallel stack of packages
+# against libjpeg-turbo (tiff, jasper, QT, opencv...),
+# libjpeg-turbo cannot be a drop-in replacement or even
+# the main jpeg implementation for conda environments.
+# This is in contrast to, for example, many linux distros,
+# where libjpeg-turbo is a first-class citizen. There are
+# two main problems that arise when mixing jpeg 9 and
+# libjpeg-turbo:
+#
+#  - Files clobbering. Alghough ABI versions avoid
+#    full clobbering for DSOs, other files like "libjpeg.so",
+#    "libjpeg.a" or "libjpeg.h" do get overwritten by
+#    either package. This is dangerous when building
+#    downstream libraries whose dependencies do pull
+#    libjpeg.
+#
+#  - Symbols collision. These two libs are both designed
+#    to have the same ABI yet have diverged on implementation.
+#    Quite the segfault headache at runtime when not mixed
+#    with care, specially if downstream dependencies are
+#    chatty and re-export the symbols, as opencv does
+#    by default. A quick summarizing read:
+#    http://www.fcollyer.com/2013/01/04/elf-symbol-visibility-and-the-perils-of-name-clashing/
+#
+#  Conda build & compilers note
+#  ----------------------------
+#  This is our first guinea pig package built with (almost released)
+#  conda-smithy 3 and conda build 3.
+#
+#  It is also ready to be compiled with the new anaconda compilers.
+#  But note:
+#    - the compilers package sets CFLAGS & friends (e.g.
+#      mtune march...) to the values used by the whole anaconda
+#      stack. We might not want these exact compilation & linking flags
+#
+#    - more importantly, incompatibilities  happen with downstream deps
+#      e.g. opencv if built with older compilers.
+#
+#  So we comment using these new compilers out in this build, until we
+#  adapt also the opencv recipe. For an example on how that adaptation
+#  would look like, see:
+#    https://github.com/AnacondaRecipes/opencv-feedstock
+#
+
+{% set version = "1.5.90" %}  # This is 2.0beta1
+{% set build_number = "0" %}
 
 package:
   name: libjpeg-turbo
   version: {{ version }}
 
 source:
+  fn: libjpeg-turbo-{{ version }}.tar.gz
   url: https://github.com/libjpeg-turbo/libjpeg-turbo/archive/{{ version }}.tar.gz
   sha256: cb948ade92561d8626fd7866a4a7ba3b952f9759ea3dd642927bc687470f60b7
 
 build:
-  number: 0
-  features:
-    - vc9  # [win and py27]
-    - vc14  # [win and (py35 or py36)]
+  number: {{ build_number }}
+  skip: True  # [not linux]
+  string: noclob_prefixed_gcc48_{{ build_number }}
+
+  # FIXME: uncomment once upstream is released and therefore version is bumped to 2.x
+  # run_exports:
+    # compatible within major version numbers
+    # https://abi-laboratory.pro/tracker/timeline/libjpeg-turbo/
+    # - {{ pin_subpackage('libjpeg-turbo') }}
 
 requirements:
   build:
-    - python  # [win]
+    # FIXME: uncomment this once we get downstream deps to use the newer compilers too
+    # - {{ compiler('c') }}
     - cmake
-    - msinttypes  # [win and py<35]
     - yasm
-    - vc 9  # [win and py27]
-    - vc 14  # [win and (py35 or py36)]
-  run:
-    - vc 9  # [win and py27]
-    - vc 14  # [win and (py35 or py36)]
 
 test:
   files:
     - testorig.jpg
   commands:
-    - djpeg -dct int -ppm -outfile testout.ppm testorig.jpg
     - conda inspect linkages -p $PREFIX $PKG_NAME  # [not win]
-    - conda inspect objects -p $PREFIX $PKG_NAME  # [osx]
+    # N.B. this does not test the prefixed version (which we stopped compiling)
+    - $PREFIX/lib/libjpeg-turbo/bin/djpeg -dct int -ppm -outfile testout.ppm testorig.jpg
 
 about:
   home: http://www.libjpeg-turbo.org/
   license: IJG, modified 3-clause BSD and zlib
   license_file: LICENSE.md
-  summary: IJG JPEG compliant runtime library with SIMD and other optimizations
+  summary: |
+    IJG JPEG compliant runtime library with SIMD and other optimizations
+    Can be mixed with libjpeg >= 9:
+      - Library files live in custom locations
+      - Public symbols are prefixed with "turbo_"
+      - Provided headers allow to keep using standard libjpeg API
 
 extra:
   recipe-maintainers:
+    - sdvillal
+  original-recipe-maintainers:
     - valgur
     - sdvillal

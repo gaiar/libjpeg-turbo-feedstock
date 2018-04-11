@@ -1,6 +1,10 @@
-travis:
-  secure:
-    BINSTAR_TOKEN: O3yqq7WQh7C6YJXx/w/+OJ8KEfBGEzmK0mV+i2yIhCUN6oqYMoixsgTXfxqXWtfSMITjLcWi6y/3GQDRl0THx4AJESl3s9CpQ/uzK985QbSfYIHF3J/hRV8odYfNDkAskgNYduyW+Fmzrzh/y+musjlODHU3SoDRmO6JPZFXSV5eUirwlVhpnJe8zJLia2h+ts3wHpVsMvZGl8HLL4T1osQbRMleArRBTLYCZPq0hKR2WatKQwk2FXr0bUYM9G1f95H73xbb6gTK2xRweRF5jzOcoBVtUArTUn75Jwgn6G8Woetn9mKDkjJQLmePRoqpJOu7U9gWhLdh9Uj/Efr3z9UBDQoj8TDZzlSVKKLPfS0N3m5PEz3Xr0UnV4h2tTYdn69XI4aaVBaekDX5oQwQ4P9ERPdAbWdGr+f+cqumcGSCbsB+6V3f6Ti9uzrnliUIBaWg9uq+2JRtQmShABm+SumIB2MQbVnSdkWzRhGhttXCWIshC96RVInUnTj7usHAwj1VawNVJRCMJ7a52aUYEWVwAXSPAsvT0sEHS+TDUUbXEWzNxEEY/mmW5OGWtIx4zUkeUzRT6fHOhPTHlkM/plgZVgYAKlEIxjErrNo15eBDjy/E/XZNTwIShfypQ2kGELkNWqu/kgAnBK0Q65f/eTP90+8hVU9FkN+FdeeujW4=
-appveyor:
-  secure:
-    BINSTAR_TOKEN: ipv/06DzgA7pzz2CIAtbPxZSsphDtF+JFyoWRnXkn3O8j7oRe3rzqj3LOoq2DZp4
+channels:
+  sources:
+    - loopbio
+    - conda-forge
+    - defaults
+  targets:
+    - [loopbio, main]
+
+github:
+  user_or_org: 'loopbio'
