@@ -9,11 +9,22 @@
 # Need to check with opencv, and probably add it like:
 #   https://stackoverflow.com/questions/1638207/how-to-store-a-version-number-in-a-static-library
 #
+#cd libjpeg-turbo-1.5.0/
+#mkdir build
+#autoreconf -fiv
+#cd build
+#export CFLAGS="-mcpu=cortex-a7 -mfpu=neon-vfpv4 -ftree-vectorize -mfloat-abi=hard -fPIC -O3"
+#export CXXFLAGS="-mcpu=cortex-a7 -mfpu=neon-vfpv4 -ftree-vectorize -mfloat-abi=hard -fPIC -O3"
+#sh <path_to_the_source_code>/configure
 
 TURBO_PREFIX=${PREFIX}/lib/libjpeg-turbo
 
 mkdir build
+autoreconf -fiv
 cd build
+
+export CFLAGS="-mcpu=cortex-a7 -mfpu=neon-vfpv4 -ftree-vectorize -mfloat-abi=hard -fPIC -O3"
+export CXXFLAGS="-mcpu=cortex-a7 -mfpu=neon-vfpv4 -ftree-vectorize -mfloat-abi=hard -fPIC -O3"
 
 cmake -LAH \
   -DCMAKE_RULE_MESSAGES=ON                                           \

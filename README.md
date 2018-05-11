@@ -19,27 +19,27 @@ Can be mixed with libjpeg >= 9:
 Current build status
 ====================
 
-[![Linux](https://img.shields.io/circleci/project/github/loopbio/libjpeg-turbo-feedstock/master.svg?label=Linux)](https://circleci.com/gh/loopbio/libjpeg-turbo-feedstock)
+[![Linux](https://img.shields.io/circleci/project/github/gaiar/libjpeg-turbo-feedstock/master.svg?label=Linux)](https://circleci.com/gh/gaiar/libjpeg-turbo-feedstock)
 ![OSX disabled](https://img.shields.io/badge/OSX-disabled-lightgrey.svg)
 ![Windows disabled](https://img.shields.io/badge/Windows-disabled-lightgrey.svg)
 
 Current release info
 ====================
 
-[![Conda Downloads](https://img.shields.io/conda/dn/loopbio/libjpeg-turbo.svg)](https://anaconda.org/loopbio/libjpeg-turbo)
-[![Conda Version](https://img.shields.io/conda/vn/loopbio/libjpeg-turbo.svg)](https://anaconda.org/loopbio/libjpeg-turbo)
-[![Conda Platforms](https://img.shields.io/conda/pn/loopbio/libjpeg-turbo.svg)](https://anaconda.org/loopbio/libjpeg-turbo)
+[![Conda Downloads](https://img.shields.io/conda/dn/gaiar/libjpeg-turbo.svg)](https://anaconda.org/gaiar/libjpeg-turbo)
+[![Conda Version](https://img.shields.io/conda/vn/gaiar/libjpeg-turbo.svg)](https://anaconda.org/gaiar/libjpeg-turbo)
+[![Conda Platforms](https://img.shields.io/conda/pn/gaiar/libjpeg-turbo.svg)](https://anaconda.org/gaiar/libjpeg-turbo)
 
 Installing libjpeg-turbo
 ========================
 
-Installing `libjpeg-turbo` from the `loopbio` channel can be achieved by adding `loopbio` to your channels with:
+Installing `libjpeg-turbo` from the `gaiar` channel can be achieved by adding `gaiar` to your channels with:
 
 ```
-conda config --add channels loopbio
+conda config --add channels gaiar
 ```
 
-Once the `loopbio` channel has been enabled, `libjpeg-turbo` can be installed with:
+Once the `gaiar` channel has been enabled, `libjpeg-turbo` can be installed with:
 
 ```
 conda install libjpeg-turbo
@@ -48,7 +48,7 @@ conda install libjpeg-turbo
 It is possible to list all of the versions of `libjpeg-turbo` available on your platform with:
 
 ```
-conda search libjpeg-turbo --channel loopbio
+conda search libjpeg-turbo --channel gaiar
 ```
 
 
@@ -62,9 +62,9 @@ package version, please fork this repository and submit a PR. Upon submission,
 your changes will be run on the appropriate platforms to give the reviewer an
 opportunity to confirm that the changes result in a successful build. Once
 merged, the recipe will be re-built and uploaded automatically to the
-`loopbio` channel, whereupon the built conda packages will be available for
-everybody to install and use from the `loopbio` channel.
-Note that all branches in the loopbio/libjpeg-turbo-feedstock are
+`gaiar` channel, whereupon the built conda packages will be available for
+everybody to install and use from the `gaiar` channel.
+Note that all branches in the gaiar/libjpeg-turbo-feedstock are
 immediately built and any created packages are uploaded, so PRs should be based
 on branches in forks and branches in the main repository should only be used to
 build distinct package versions.
