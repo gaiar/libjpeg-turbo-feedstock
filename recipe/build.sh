@@ -23,8 +23,8 @@ mkdir build
 autoreconf -fiv
 cd build
 
-export CFLAGS="-mcpu=cortex-a7 -mfpu=neon-vfpv4 -ftree-vectorize -mfloat-abi=hard -fPIC -O3"
-export CXXFLAGS="-mcpu=cortex-a7 -mfpu=neon-vfpv4 -ftree-vectorize -mfloat-abi=hard -fPIC -O3"
+export CFLAGS="-march=native -mtune=native"
+export CXXFLAGS="-march=native -mtune=native"
 
 cmake -LAH \
   -DCMAKE_RULE_MESSAGES=ON                                           \
